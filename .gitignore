@@ -2,3 +2,4 @@
 backend/src/mysql
 **/sql
 sql.js
+.env

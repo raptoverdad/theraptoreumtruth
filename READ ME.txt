@@ -1,0 +1,8 @@
+you was creating such a great app you you decided to start learning react.
+
+you had en extremely potent backen and you need to know how to use validation in your favor,
+here are the videos you was watching to lear about the express library 'express-validator':
+
+ express validator: https://www.youtube.com/watch?v=hBETsBY3Hlg&t=1147s
+
+also don't forget about JWT
