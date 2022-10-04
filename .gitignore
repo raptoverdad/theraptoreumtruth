@@ -1,3 +1,4 @@
 **/node_modules
 backend/src/mysql
 sql.js
+.env
