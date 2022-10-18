@@ -11,64 +11,73 @@ export default createStore({
     loginEmail:'',
     loginPassword:'',
     isUser:false,
-    userProfilePicture:'',
     userUsername:'',
     userError:false,
     emailError:false,
     registerSuccess:false,
-    userNotVerified:false
+    userNotVerified:false,
+    loginError:false,
+    credentialError:false,
+    isNotUser:true,
+    token:localStorage.getItem("token"),
+    username:localStorage.getItem("user"),
+    language:localStorage.getItem("language")
   },
   getters: {
   },
   mutations: {
     loginPost(state){
       if(state.loginEmail.includes('*','=','or','OR','SELECT','select','from','FROM','DROP','drop') || state.loginPassword.includes('*','=','or','OR','SELECT','select','from','FROM')){
-     alert('you are using not allowed characters .|. // estás usando caracteres no permitidos .|.')
+     alert('you are using not allowed characters // estás usando caracteres no permitidos .|.')
 }
 else{
         let loginUserData={loginEmail:state.loginEmail,loginPassword:state.loginPassword}
         axios.post('http://localhost:3000/login',loginUserData)
         .then(res=>{
-          console.log(res)
+    
 
           try {
-          if(res.data.access=='approved'){ 
-          router.push('/')
-          //localstorage
+          if(res.data.access=='approved'){
+
+          localStorage.setItem('user',res.data.username)
+          localStorage.setItem('token',res.data.token)
+          localStorage.setItem('profilePicture',res.data.img)
+          state.isUser=true
+          state.isNotUser=false
+           window.location.href = "http://localhost:8080/"
+
           }else if(res.data.access=='denied'){
             console.log('denied:',res)
+            loginError=true
           }
           } catch (error) {
             console.log(error)
           }
-          
+
           }).catch(err=>{
-          try {
-            console.log(err)
-            if(err.response.data.error === 'userNotVerified'){
-               state.userNotVerified=true
-            }
-            console.log(state.userNotVerified)
-          } catch (error) {
-            
-          }
+              console.log(err.response.data.error)
+
+              try {
+                if(err.response.data.error === "userDoesn'tExist"){
+                  state.userError =true
+                }else if(err.response.data.error === "userNotVerified"){
+                  state.userNotVerified=true
+                }else if(err.response.data.error === "databaseError"){
+                  state.error=true
+                } 
+              } catch (error) {
+                
+              }
+
+         
         })
       }
      
     },
     registerPost(state){
       console.log(state.registerUser)
-  if(state.registerEmail.includes('*','=','or','OR','SELECT','select','from','FROM','DROP','drop')){
+  if(state.registerEmail.includes('*' || '=' || 'or' ||'OR' ||'SELECT' ||'select' || 'from' || 'FROM' || 'DROP' || 'drop' || "#")){
         alert('your email contains not allowed characters // tu email contiene caracteres no permitidos')
-   }else if(state.registerPassword.includes('*','=','or','OR','SELECT','select','from','FROM')){
-    alert('your password contains not allowed characters // tu email contiene caracteres no permitidos')
-   }
-   else if(state.registerPassword != state.registerPassword2){
-       alert('Passwords do not match // las contraseñas no coinciden')
-    }else if(state.registerUser.includes('*','=','or','OR','SELECT','select','from','FROM','TABLE','table','?','¿','!','¡','-','"','#','/','(',')','','|','$','%','&',';','<','>','{','}','+',',')){
-       alert('your username must only contain letters or numbers')  
-   }else if(state.registerPassword2 == '' || state.registerPassword == ''  || state.registerUser=='' || state.registerEmail==''){
-    alert('you must fulfill all the fields')  
    }
    else{
            let registerUserData={registerEmail:state.registerEmail,registerPassword:state.registerPassword,registerUser:state.registerUser,registerPassword2:state.registerPassword2}
@@ -88,29 +97,62 @@ else{
             }catch(e){
               console.log(e)
             }
+               
+          try {
+            if(res.data.error=='joiError' && state.language == 'english'){
+             alert('you are using not allowed characters in username')
+            }else if(res.data.error=='joiError' && state.language == 'spanish'){
+              alert('estás usando caracteres no permitidos en tu nombre de usuario')
+            }
+          } catch (error) {
+            
+          }
 
            }).catch(err=>{
-              console.log(err.response.data.error)
-              if(err.response.data.error==="this user already exists"){
-                    state.userError=true
-                    state.emailError=false
-                  }else if(err.response.data.error==="this email already exists"){
-                    state.emailError=true
-                    state.userError=false
-                  }else if(err.response.data.error==="this email already exists" && err.response.data.error==="this user already exists"){
-                    state.userError=true
-                    state.emailError=true
-                  }
-              
+   
+              try {
+                if(err.response.data.error==='this user already exists'){
+                     state.userError= true
+                }else if(err.response.data.error==='this user email exists'){
+                  state.emailError= true
+                }
+              } catch (error) {
+                
+              }
            })
          }
         
-    }, goLogin:(state)=>{
+}, goLogin:(state)=>{
       state.registerSuccess=false
+},goRegister:(state)=>{
+   state.userError=false
+},goVerify(state){
+   state.userNotVerified=false
+},goError(state){
+  state.loginError=false
+},userStatus(state){
+
+console.log(state.token)
+},
+credentialErrorFalse(state){
+state.credentialError=false
+},logOut(){
+  localStorage.removeItem("token")
+  window.location.href = "http://localhost:8080/"
+},getRichList(){
   
-    }
+fetch('https://explorer.raptoreum.com/api/queryrichlist?start=0&length=1', {
+  method: 'GET',
+  headers: {
+    mode: "no-cors"
+  }
+})
+  .then((response) => response.json())
+  .then((data) => console.log(data));
+}
   },
   actions: {
+  
   },
   modules: {
   }

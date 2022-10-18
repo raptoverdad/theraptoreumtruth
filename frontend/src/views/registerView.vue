@@ -1,6 +1,17 @@
 <template>
-<div class="login">
-   <div class="confirmMail" v-if="$store.state.registerSuccess">
+<div class="login"  v-if="$store.state.language">
+
+    <div class="userError" v-if="$store.state.language == 'english' && $store.state.token">
+        <h1  style="font-family: 'Kanit',sans-serif;">Hi {{$store.state.username}} ! to create a new account you need to logout first. </h1>
+    <button v-on:click="goToHome">go to home</button><button>logout</button>
+    </div>
+
+    <div class="userError" v-if="$store.state.language == 'spanish' && $store.state.token">
+        <h1  style="font-family: 'Kanit',sans-serif;">Hola {{$store.state.username}} ! si quieres crear una nueva cuenta primero deber cerrar sesion. </h1>
+    <button v-on:click="goToHome">ir a inicio</button><button>cerrar sesion</button>
+    </div>
+
+    <div class="confirmMail" v-if="$store.state.registerSuccess">
     
     <h1  style="font-family: 'Kanit', sans-serif;">you've been succesfully registered, please confirm your email </h1>
     <button v-on:click="$store.commit('goLogin')">understood</button>
@@ -12,13 +23,16 @@
 
              <div class="log">
 
-                 <div class="info">
+                 <div class="info" v-if="$store.state.language == 'english'">
                      <h1 style="color:#fff;font-size:4vh">Hi Raptorean!</h1><h1 style="color:#f00;font-size:4vh">nice to see you again.</h1>
                  </div>
+                 <div class="info" v-if="$store.state.language == 'spanish'">
+                     <h1 style="color:#fff;font-size:4vh">Hola raptoreano!</h1><h1 style="color:#f00;font-size:4vh">un gusto verte denuevo.</h1>
+                 </div>
 
-                          <form class="form" v-on:submit.prevent="$store.commit('registerPost')">
+                          <form class="form" v-if="$store.state.language=='english'" v-on:submit.prevent="$store.commit('registerPost')">
 
-                               <h1 style="color:#f00;font-size: 6vh;font-family: 'Kanit', sans-serif" >Register</h1>
+                               <h1 style="color:#f00;font-size: 6vh;font-family:'Kanit', sans-serif" >Register</h1>
                                <label for="username">username</label>
                                <input id='username' v-model="$store.state.registerUser" type="text">
                                <p class="error" v-if="$store.state.userError">user already exists</p>
@@ -33,6 +47,24 @@
                                <div class="error" v-if="error">something's wrong with our server, try again later</div>
         
                          </form>
+
+                         <form class="form" v-if="$store.state.language=='spanish'" v-on:submit.prevent="$store.commit('registerPost')">
+
+                            <h1 style="color:#f00;font-size: 6vh;font-family: 'Kanit', sans-serif" >Registro</h1>
+                            <label for="username">usuario</label>
+                            <input id='username' v-model="$store.state.registerUser" type="text">
+                            <p class="error" v-if="$store.state.userError">este usuario ya existe</p>
+                            <label for="email">correo</label>
+                            <input id="email" v-model="$store.state.registerEmail" type="email">
+                            <p class="error" v-if="$store.state.emailError">este correo ya está registrado</p>
+                            <label for="password">contraseña</label>
+                            <input id="password" v-model="$store.state.registerPassword" type="password">
+                            <label for="password2">repita la contraseña</label>
+                            <input id="password2" v-model="$store.state.registerPassword2" type="password">
+                            <input type="submit" style="font-family: 'Kanit', sans-serif;" class='submit' value="registrarme">
+                            <div class="error" v-if="error">hubo un error con el servidor porfavor intentelo denuevo</div>
+
+</form>
             </div>
 </div>
 </template>
@@ -56,7 +88,9 @@ components: {
    }
   },
   methods:{
-
+    goToHome:()=>{
+        window.location.href="http://localhost:8080/"
+    }
   }
 }
 </script>
@@ -167,6 +201,34 @@ label{
     border:2px solid #fff;
     
 }
+.userError{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #000;
+    z-index: 10;
+  }
+  .userError h1{
+    color: #fff;
+    text-align: center;
+  
+  
+  }
+  .userError button{
+    margin-top: 5vh;
+    width: 20vw;
+    height: 5vh;
+    cursor: pointer;
+    border:2px solid #fff;
+    background: transparent;
+    color: #fff;
+ font-family: 'Kanit', sans-serif;
+ font-weight: 900;
+  }
 
 #password,#email, #password2, #username{
     width: 20vw;
@@ -198,6 +260,14 @@ input{
         transform: rotateY(360deg);
     }
     
+}
+@media(max-width: 1200px){
+    .log{
+
+        margin-bottom: 0;
+       
+         height: 70vh;
+        }
 }
 @media (max-width: 700px) {
 .log{
