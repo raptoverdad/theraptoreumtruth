@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 import axios from 'axios'
-import router from '@/router'
+
 
 export default createStore({
   state: {
@@ -21,14 +21,15 @@ export default createStore({
     isNotUser:true,
     token:localStorage.getItem("token"),
     username:localStorage.getItem("user"),
-    language:localStorage.getItem("language")
+    language:localStorage.getItem("language"),
+   picture:''
   },
   getters: {
   },
   mutations: {
     loginPost(state){
       if(state.loginEmail.includes('*','=','or','OR','SELECT','select','from','FROM','DROP','drop') || state.loginPassword.includes('*','=','or','OR','SELECT','select','from','FROM')){
-     alert('you are using not allowed characters // estás usando caracteres no permitidos .|.')
+     alert('you are using not allowed characters // estás usando caracteres no permitidos')
 }
 else{
         let loginUserData={loginEmail:state.loginEmail,loginPassword:state.loginPassword}
@@ -41,7 +42,7 @@ else{
 
           localStorage.setItem('user',res.data.username)
           localStorage.setItem('token',res.data.token)
-          localStorage.setItem('profilePicture',res.data.img)
+       
           state.isUser=true
           state.isNotUser=false
            window.location.href = "http://localhost:8080/"
@@ -55,7 +56,7 @@ else{
           }
 
           }).catch(err=>{
-              console.log(err.response.data.error)
+           
 
               try {
                 if(err.response.data.error === "userDoesn'tExist"){
@@ -68,7 +69,20 @@ else{
               } catch (error) {
                 
               }
-
+               
+              try {
+                if(err.response.data.errors.errors[0].param === 'loginEmail' && state.language === 'english'){
+                  alert('invalid email')
+              }else if(err.response.data.errors.errors[0].param === 'loginPassword' && state.language === 'english'){
+                alert('invalid password')
+              }else if(err.response.data.errors.errors[0].param === 'loginEmail' && state.language === 'spanish'){
+                  alert('email invalido')
+              }else if(err.response.data.errors.errors[0].param === 'loginPassword' && state.language === 'spanish'){
+                alert('contraseña invalida')
+            }
+              } catch (error) {
+                
+              }
          
         })
       }
@@ -138,19 +152,44 @@ credentialErrorFalse(state){
 state.credentialError=false
 },logOut(){
   localStorage.removeItem("token")
+  localStorage.removeItem("user")
+  localStorage.removeItem("picture")
   window.location.href = "http://localhost:8080/"
-},getRichList(){
-  
-fetch('https://explorer.raptoreum.com/api/queryrichlist?start=0&length=1', {
-  method: 'GET',
-  headers: {
-    mode: "no-cors"
+},   goToHome:()=>{
+  this.$router.push('homeView')
+},
+ settingsLoaded(state){
+ axios.get(`http://localhost:3000/settings/${state.token}`)
+.then(res=>{
+  if(res.data.success==='true'){
+    console.log('success')
+    state.picture=res.data.picture
+    state.username=res.data.username
+    window.location.href = "http://localhost:8080/userSettings"
   }
 })
-  .then((response) => response.json())
-  .then((data) => console.log(data));
-}
-  },
+.catch(err=>{
+  if(err){
+    window.location.href = "http://localhost:8080/"
+  }
+})
+},
+changeProfilePicture:(event)=>{
+  console.log(event)
+  let img=event.srcElement.src 
+  let image={photo:img}
+    axios.post(`http://localhost:3000/profilePicture/${localStorage.getItem('token')}`,image)
+  .then(res=>{
+    if(res.data.res==='updated' && localStorage.getItem('language')==='english'){
+      document.querySelector('.picture').src=img
+      alert('profile picture succesfully updated!!')
+   }else if(res.data.res==='updated' && localStorage.getItem('language')==='spanish'){
+      document.querySelector('.picture').src=img
+      alert('¡se ha cambiado tu foto de perfil!')
+   }
+  })
+  }
+},
   actions: {
   
   },

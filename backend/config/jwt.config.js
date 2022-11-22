@@ -11,9 +11,10 @@ const getTokenData=(token)=>{
     let data =null
     jwt.verify(token,process.env.SECRET_WORD,(err,decoded)=>{
         if(err){
-           console.log('error al obtener data del token')
+           throw new Error("no-valid-token")
         }else{
            data=decoded
+           
         }
     })
     return data

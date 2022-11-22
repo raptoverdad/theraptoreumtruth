@@ -8,6 +8,7 @@ import chat from '../views/chat.vue'
 import smartcontracts from '../views/smartcontracts.vue'
 import statistics from '../views/statistics.vue'
 import surveys from '../views/statistics.vue'
+import settings from '../views/userSettings.vue'
 const routes = [
   {
     path: '/',
@@ -77,6 +78,14 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component:smartcontracts
+  },
+  {
+    path: '/userSettings',
+    name: 'userSettings',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component:settings
   }
 ]
 

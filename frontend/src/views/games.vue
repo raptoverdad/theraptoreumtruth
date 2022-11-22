@@ -97,7 +97,7 @@ closeChan(){
   }
 }
 </script>
-<style>
+<style scoped>
   *{
     box-sizing: border-box;
     margin: 0;
@@ -107,6 +107,7 @@ closeChan(){
 
     max-width: 100vw;
     height: min-content;
+    min-height: 90vh;
     background:linear-gradient(#000,#f00) ;
     display: flex;
     flex-direction: column;

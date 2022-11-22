@@ -1,5 +1,5 @@
 require('dotenv').config({ path: `${__dirname}/.env` }) 
-const express=require('express')
+
 const cors=require('cors')
 const mysql=require('mysql')
 const joi=require('joi')
@@ -11,15 +11,17 @@ const {getToken,getTokenData}=require('./config/jwt.config.js')
 const {sendMail}=require('./config/mail.config')
 const {conector}=require('./sql')
 const complexity= require('joi-password-complexity')
+const express = require('express');
+const app = express();
 
-const app=express()
-app.use(express.json())
 var corsOptions = {
-    origin: '*',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }
+  origin: '*',
+  optionsSuccessStatus: 200 
+}
 
 app.use(cors(corsOptions))
+
+app.use(express.json({limit: "30mb", extended: true}))
 
 app.listen('3000',()=>{
     console.log('listening on port 3000')
@@ -59,9 +61,7 @@ app.get('/confirm/:token',(req,res)=>{
            sqlfile.conector.query(`SELECT * FROM users WHERE email = '${userEmail}'`,(err,result,field)=>{ 
             if(result[0]){
               verified(userEmail)
-     
-                res.send(`your email has been confirmed you can login now here: <a href=${process.env.LOGIN_LINK}>goooo!</a>`)
-             
+              res.send(`your email has been confirmed you can login now here: <a href=${process.env.LOGIN_LINK}>goooo!</a>`)
             }else if(err){
               res.send("something went wrong please try again later")
             }
@@ -79,43 +79,35 @@ app.get('/confirm/:token',(req,res)=>{
 confirm()
 })    
 
-app.post('/login',[ body('loginEmail').isEmail({ allow_display_name: false, require_display_name: false, allow_utf8_local_part: true, require_tld: true, allow_ip_domain: false, domain_specific_validation: false, blacklisted_chars: '*', host_blacklist: ['*-'] })
+app.post('/login',[body('loginEmail').isEmail({ allow_display_name: false, require_display_name: false, allow_utf8_local_part: true, require_tld: true, allow_ip_domain: false, domain_specific_validation: false, blacklisted_chars: '*', host_blacklist: ['*-'] })
 .normalizeEmail().toLowerCase(),
 body('loginPassword').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1}),],(req,res)=>{
-let body=req.body
-console.log(body)
-let loginEmail=body.loginEmail
-let loginPassword=body.loginPassword
+
+let loginEmail=req.body.loginEmail
+let loginPassword=req.body.loginPassword
 let errors=validationResult(req)
 if(!errors.isEmpty()){
 res.status(401).json({errors:errors})
 }else{
-  const login=(email,userpassword)=>{
+const login=(email,userpassword)=>{
 
     let sql3=`SELECT * FROM users WHERE email = '${email}'`
     
-  conector.query(sql3,(err,result,field)=>{
-  
-  if(err){
+conector.query(sql3,(err,result,field)=>{
+if(err){
    res.status(401).json({error:'databaseError'})
-  }
-  try {
-   
-  if (!result[0]){
+}
+try {
+if (!result[0]){
     res.status(401).json({error:"userDoesn'tExist"})
+}else if(result[0].verified === 'true'){
+   let compare= brcryptjs.compareSync(userpassword,result[0].password);
+  if(compare){
+      
+
+      res.send(JSON.stringify({access:"approved",token: getToken(loginEmail),username:result[0].username,img:result[0].profilepicture}))
     
-    } else if (result[0].verified === 'true'){
-   
-     let compare= brcryptjs.compareSync(userpassword,result[0].password);
-     if(compare){
-           jwt.sign({loginEmail},"secretkey",(err,token)=>{ //ver tutorial para saber deque carajo sirve firmar el loginEMAIL https://www.youtube.com/watch?v=B4c2kxs639w&t=1s
-             if(err){
-               console.log(err)
-             }else{
-               console.log('good result:',result[0].username)
-               res.send(JSON.stringify({access:"approved",token:token,username:result[0].username,img:result[0].profilepicture}))
-             }
-  })
+     
      }
     }else if (result[0].verified === 'false'){
       res.status(401).json({error:'userNotVerified'})
@@ -164,6 +156,7 @@ const schema=joi.object().keys({
     registerPassword:joi.string(),
     registerPassword2:joi.string()
 })
+
 let validation=schema.validate(req.body);
 if(validation.error){
   console.log(validation.error.message)
@@ -171,9 +164,38 @@ if(validation.error){
 }else if(!validation.error){
   next()
 }
-
-
 }
+
+app.post('/profilePicture/:token',(req,res)=>{
+let photo=req.body.photo
+let email=getTokenData(req.params.token)
+let email2=email.data
+console.log(req.body)
+let sql=`UPDATE users SET profilepicture = '${photo}' WHERE email ='${email2}'`
+sqlfile.conector.query(sql,(err,result,field)=>{
+if(err){
+res.status(401).json({error:'notUpdated'})
+}else{
+res.send(JSON.stringify({res:"updated"}))
+}
+})
+})
+
+app.get('/settings/:token',(req,res)=>{
+  let email=getTokenData(req.params.token)
+let email2=email.data
+console.log(email2)
+let sql=`SELECT * FROM users WHERE email ='${email2}'`
+sqlfile.conector.query(sql,(err,results,fields)=>{
+if(err){
+res.status(401).json({error:'notUpdated'})
+console.log(err)
+}else if(results[0]){
+
+res.send(JSON.stringify({success:"true",picture:`${results[0].profilepicture}`,username:`${results[0].username}`}))
+}
+})
+})
 
 app.post('/register',securityBridgeRegister1,[
 body('registerUser')
@@ -218,6 +240,5 @@ body('registerPassword')
   register(bodyRes.registerEmail,bodyRes.registerUser,passwordHash)
   }
             
-  
 })
 

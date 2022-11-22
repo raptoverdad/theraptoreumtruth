@@ -32,7 +32,7 @@ every member is working for the other, i expect you to do the same.
 <script>
 
 </script>
-<style>
+<style scoped>
 *{
     box-sizing: border-box;
     margin: 0;

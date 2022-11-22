@@ -1,6 +1,6 @@
 <template >
   <div class="home"  v-if="$store.state.language" v-on:load="$store.commit('userStatus')">
-  
+   
     <div class="wrapper" v-if="$store.state.language == 'english'" >
      <div v-on:click="openChat()" class="container"><img src="../assets/raptoreumworld.png" alt=""></div>
      <div  v-on:click="openSurveys()" class="container"><img src="../assets/scoredsurveys.png" alt=""></div>
@@ -8,7 +8,7 @@
      <div  v-on:click="openContracts()" class="container"><img src="../assets/raptoreumsmartcontracts.png" alt=""></div>
      <div   v-on:click="openGames()"  class="container"><img src="../assets/raptogames.png" alt=""></div>
      <div v-on:click="openAbout()" class="container"><img src="../assets/whatis.png" alt=""></div>
-    </div>
+  </div>
 
 
     <div class="wrapper" v-if="$store.state.language == 'spanish'">
@@ -22,12 +22,21 @@
 
   </div>
 
-  <div  v-if="$store.state.language=='spanish'"  class="footer">
+  <div  v-if="$store.state.language=='spanish' && !$store.state.token"  class="footer">
     <div class="time">Desarrollado por Rapto Verdad</div>
   </div>
-  <div  v-if="$store.state.language=='english'" class="footer">
+  <div  v-if="$store.state.language=='english' && !$store.state.token" class="footer">
     <div class="time">powered by Rapto Verdad</div>
   </div>
+
+  <div  v-if="$store.state.language=='spanish' && $store.state.token"  class="footer">
+  <div class="time"> <i class="fa-solid fa-gear" v-if="$store.state.token" v-on:click="openSettings">configuración</i></div> 
+  </div>
+  <div  v-if="$store.state.language=='english' && $store.state.token" class="footer">
+    <div class="time"><i class="fa-solid fa-gear" v-if="$store.state.token" v-on:click="openSettings">user settings</i></div>
+  </div> 
+
+
 </template>
 
 <script>
@@ -55,6 +64,9 @@ this.$router.push('about')
 }
 ,openChat(){
   this.$router.push('chat')
+
+},openSettings(){
+  this.$router.push('userSettings')
 }
   }
 }
@@ -114,12 +126,13 @@ overflow: hidden;
     align-items: center;
     max-width:100%;
     height: 100%;
-    color: #fff;
+    color: #f00;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     cursor: pointer;
   }
+
   @keyframes background{
 0%{
 background-color: #000;

@@ -25,7 +25,7 @@
     </div>
     <!--spanish modals -->
 
-    <div class="userError" v-if="$store.state.userError && $store.state.language == 'english'">
+    <div class="userError" v-if="$store.state.userError && $store.state.language == 'spanish'">
         <h1  style="font-family:'Kanit', sans-serif;">no estás registrado </h1>
     <button v-on:click="$store.commit('goRegister')">entendido</button>
     </div>
@@ -102,15 +102,19 @@
 
 <script>
 import axios from 'axios'
-import store from '../store/index.js'
+import createStore from '@/main.js'
     export default {
   name: 'loginView',
-  store,
+  createStore,
   components: {
 
 },data(){
 
-},methods:{
+},
+beforeCreate(){
+    
+},
+methods:{
     goToHome:()=>{
         window.location.href="http://localhost:8080/"
     }
